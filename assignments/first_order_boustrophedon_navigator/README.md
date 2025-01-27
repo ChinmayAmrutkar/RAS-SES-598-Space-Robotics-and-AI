@@ -1,8 +1,7 @@
 # First-Order Boustrophedon Navigator
-![image](https://github.com/user-attachments/assets/940fc6bc-fcee-4d11-8bc8-d53a650aaf80)
 
-In this assignment, you will understand the provided code in ROS2 with Turtlesim, and refactor and/or tune the navigator to implement a precise lawnmower survey (a boustrophedon pattern). The current code will do a pattern shown above, which is not a uniform lawnmower survey. 
-Explore literature on how lawnmower surveys typically look, and modify the code to meet the requirements for a uniform survey. 
+## Project Overview
+This project implements and optimizes a boustrophedon (lawnmower) pattern navigator using ROS2 and Turtlesim. The goal was to achieve precise coverage patterns through PD controller tuning and parameter optimization.
 
 ## Background
 Boustrophedon patterns (from Greek: "ox-turning", like an ox drawing a plow) are fundamental coverage survey trajectories useful in space exploration and Earth observation. These patterns are useful for:
@@ -31,10 +30,7 @@ Tune a PD controller to make a first-order system execute the most precise boust
 - Analysis of trajectory tracking performance
 - ROS2 visualization and debugging
 
-## Prerequisites
-
 ### System Requirements
-Choose one of the following combinations:
 - Ubuntu 22.04 + ROS2 Humble
 - Ubuntu 23.04 + ROS2 Iron
 - Ubuntu 23.10 + ROS2 Iron
@@ -84,6 +80,24 @@ Provide a detailed analysis of your tuning process:
 - Performance plots and metrics
 - Challenges encountered and solutions
 - Comparison of different parameter sets
+
+## Approach
+
+To solve this assignment, the following approach was adopted:
+
+1. **Literature Review:**
+   - Explored research papers and existing implementations of lawnmower patterns.
+   - [Baehnemann et al. (2019)](https://jenjenchung.github.io/anthropomorphic/Papers/Baehnemann2019revisiting.pdf)  revisited coverage path planning, emphasizing how boustrophedon       patterns efficiently provide complete area coverage with minimal overlap and optimized         turns.
+     <br>![image](https://github.com/user-attachments/assets/dafe214b-a4b8-45f5-a84a-975e9601d427)
+2. **Initial Testing and Observation:**
+   - Ran the existing code to identify key performance bottlenecks.
+3. **Incremental Tuning Strategy:**
+   - Started with low gains and increased them gradually.
+   - Focused on tuning one parameter at a time.
+   - Balanced speed and accuracy.
+4. **Performance Monitoring:**
+   - Used `rqt_plot` to visualize trajectory and cross-track error.
+   - Analyzed cornering performance and smoothness.
 
 ## Getting Started
 
@@ -137,59 +151,127 @@ Add these topics:
 - /turtle1/cmd_vel/angular/z
 - /cross_track_error
 
-## Evaluation Criteria
+### Initial Testing and Observation
 
-1. Controller Performance (60%)
-   - Average cross-track error < 0.2 units (25%)
-   - Maximum cross-track error < 0.5 units (15%)
-   - Smooth velocity profiles (10%)
-   - Clean cornering behavior (10%)
+#### System Behavior Analysis
+Initial testing revealed several key characteristics of the system:
+- The turtlebot showed sensitivity to angular velocity controls
+- Cross-track error varied significantly with different gain combinations
+- Pattern spacing directly impacted coverage completeness
+- Turn behavior required careful tuning of angular gains
 
-2. Pattern Quality (20%)
-   - Even spacing between lines
-   - Complete coverage of target area
-   - Efficient use of space
+#### Key Observations
+1. **Path Following Accuracy:**
+   - Higher Kp_linear values improved straight-line tracking
+   - Angular control required precise tuning to prevent oscillations
+   - System showed good stability with proper gain selection
 
-3. Documentation (20%)
-   - Clear explanation of tuning process
-   - Well-presented performance metrics
-   - Thoughtful analysis of results
+2. **System Response:**
+   - Linear velocity maintained consistent speed during straight paths
+   - Angular velocity showed expected peaks during turns
+   - Cross-track error remained well within acceptable limits
 
-## Submission Requirements
+## Parameter Testing and Analysis Results
 
-1. GitHub Repository:
-   - Commit messages should be descriptive
+### Performance Testing Results
 
-2. Documentation in Repository:
-   - Update the README.md in your fork with:
-     - Final parameter values with justification
-     - Performance metrics and analysis
-     - Plots showing:
-       - Cross-track error over time
-       - Trajectory plot
-       - Velocity profiles
-     - Discussion of tuning methodology
-     - Challenges and solutions
+| Test Case | Kp_linear | Kd_linear | Kp_angular | Kd_angular | Spacing | Avg Cross-Track Error | Max Cross-Track Error | Linear Velocity Profile | Angular Velocity Profile | Cornering Performance | Coverage Quality | Notes |
+|-----------|-----------|-----------|------------|------------|---------|---------------------|---------------------|----------------------|----------------------|---------------------|------------------|-------|
+| 1 | 1.0 | 0.1 | 1.0 | 0.1 | 1.0 | 0.984 | 2.209 | Sluggish | Inconsistent | Poor - Wide turns | Uneven coverage | Initial test - Too conservative |
+| 2 | 7.0 | 0.1 | 3.0 | 0.2 | 1.0 | 0.556 | 0.995 | Improved | Some oscillations |  Poor - Wide turns | Uneven coverage | Better tracking but unstable |
+| 3 | 10.0 | 0.1 | 5.0 | 0.2 | 1.0 | 0.281 | 0.609 | More responsive | Some oscillations | Good | Even spacing | Good Spacing |
+| 4 | 10.0 | 0.1 | 7.0 | 0.1 | 1.0 | 0.157 | 0.323 | More responsive | Better stability | Good | Even spacing | Getting closer to target |
+| 5 | 10.0 | 0.1 | 10.0 | 0.05 | 1.0 | 0.053 | 0.185 | Agressive and Oscilating | Some oscillations | Not good | Uneven spacing | Too agressive |
+| 6 | 8.0 | 0.5 | 10.0 | 0.05 | 1.0 | 0.053 | 0.146 | Stable | Some oscillations | Better | Better evenly spacing | Can be fine tuned |
+| 7 | 7.0 | 0.5 | 10.0 | 0.02 | 1.0 | 0.045 | 0.133 | Very good | Smooth | Good evenly spacing | Very good | Close to target |
+| **10** | **7.0** | **0.6** | **10.0** | **0.01** | **0.4** | **0.055** | **0.133** | **Excellent** | **Perfect transitions** | **Optimal** | **Optimal spacing** | **Best Performance** ✅ |
+| 11 | 8.0 | 0.2 | 7.0 | 0.1 | 1.0 | 0.098 | 0.256 | Too aggressive | Sharp transitions | Good | Slight overlap | Post-optimal test |
+| 12 | 9.0 | 0.3 | 8.0 | 0.05 | 0.3 | 0.075 | 0.225 | Oscillatory | Overshooting | Moderate | Excessive overlap | Too aggressive |
 
-3. Submit your work:
-   - Submit the URL of your GitHub repository
-   - Ensure your repository is public
-   - Final commit should be before the deadline
 
-## Tips for Success
-- Start with low gains and increase gradually
-- Test one parameter at a time
-- Pay attention to both straight-line tracking and cornering
-- Use rqt_plot to visualize performance in real-time
-- Consider the trade-off between speed and accuracy
+## Implemented Solution
 
-## Grading Rubric
-- Perfect tracking (cross-track error < 0.2 units): 100%
-- Good tracking (cross-track error < 0.5 units): 90%
-- Acceptable tracking (cross-track error < 0.8 units): 80%
-- Poor tracking (cross-track error > 0.8 units): 60% or lower
+### Final Parameter Values
+```python
+# Optimized Controller Parameters
+Kp_linear = 7.0     # Strong linear correction
+Kd_linear = 0.6     # Balanced damping
+Kp_angular = 10.0   # Quick angular response
+Kd_angular = 0.01   # Minimal angular damping
+spacing = 0.4       # Tight pattern spacing
+```
 
-Note: Final grade will also consider documentation quality and analysis depth.
+### Performance Achievements
+1. **Cross-Track Error:**
+   - Average: 0.055 units (Target: < 0.2 units) ✅
+   - Maximum: 0.133 units (Target: < 0.5 units) ✅
+
+2. **Velocity Control:**
+   - Linear velocity maintained around 0.632 units
+   - Smooth transitions between path segments
+   - Stable angular velocity during turns
+
+3. **Pattern Quality:**
+   - Complete coverage (100% completion)
+   - Uniform line spacing at 0.4 units
+   - Clean cornering behavior
+
+### Parameter Justification
+
+1. **Kp_linear = 7.0:**
+   - Provides strong path-following behavior
+   - Ensures quick correction of linear deviations
+   - Maintains stable straight-line motion
+
+2. **Kd_linear = 0.6:**
+   - Adds appropriate damping to linear motion
+   - Prevents overshooting during corrections
+   - Smooths velocity transitions
+
+3. **Kp_angular = 10.0:**
+   - Enables sharp, precise turns
+   - Maintains heading accuracy
+   - Quick response to direction changes
+
+4. **Kd_angular = 0.01:**
+   - Minimal damping for responsive turning
+   - Prevents oscillations while maintaining agility
+   - Allows smooth corner transitions
+
+5. **spacing = 0.4:**
+   - Ensures complete coverage
+   - Provides optimal path density
+   - Balances efficiency with thoroughness
+
+## Performance Analysis
+
+### System Stability
+- Consistent cross-track error around 0.055 units
+- Smooth velocity profiles throughout execution
+- Stable cornering behavior
+
+### Coverage Efficiency
+- Achieved 100% completion rate
+- Uniform pattern spacing
+- No gaps in coverage
+
+### Motion Quality
+- Linear velocity maintained steady state
+- Angular velocity appropriately peaked during turns
+- Minimal oscillations in straight-line segments
+
+## Conclusions
+
+The implemented solution successfully achieved:
+- Precise path following with minimal cross-track error
+- Complete area coverage with uniform spacing
+- Stable and efficient motion throughout the pattern
+- All target performance metrics met or exceeded
+
+The final parameter configuration represents an optimal balance between:
+- Control responsiveness and stability
+- Coverage completeness and efficiency
+- Motion smoothness and precision
 
 ## Extra Credit (10 points)
 Create and implement a custom ROS2 message type to publish detailed performance metrics:

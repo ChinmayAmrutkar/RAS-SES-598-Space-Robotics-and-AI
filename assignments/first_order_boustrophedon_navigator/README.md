@@ -183,13 +183,14 @@ Initial testing revealed several key characteristics of the system:
 | 4 | 10.0 | 0.1 | 7.0 | 0.1 | 1.0 | 0.157 | 0.323 | More responsive | Better stability | Good | Even spacing | Getting closer to target |
 | 5 | 10.0 | 0.1 | 10.0 | 0.05 | 1.0 | 0.053 | 0.185 | Agressive and Oscilating | Some oscillations | Not good | Uneven spacing | Too agressive |
 | 6 | 8.0 | 0.5 | 10.0 | 0.05 | 1.0 | 0.053 | 0.146 | Stable | Some oscillations | Better | Better evenly spacing | Can be fine tuned |
-| 7 | 7.0 | 0.5 | 10.0 | 0.02 | 1.0 | 0.045 | 0.133 | Very good | Smooth | Good evenly spacing | Very good | Close to target |
+| 7 | 7.0 | 0.5 | 10.0 | 0.02 | 0.5 | 0.045 | 0.133 | Very good | Smooth | Good evenly spacing | Very good | Close to target |
 | **10** | **7.0** | **0.6** | **10.0** | **0.01** | **0.4** | **0.055** | **0.133** | **Excellent** | **Perfect transitions** | **Optimal** | **Optimal spacing** | **Best Performance** ✅ |
-| 11 | 8.0 | 0.2 | 7.0 | 0.1 | 1.0 | 0.098 | 0.256 | Too aggressive | Sharp transitions | Good | Slight overlap | Post-optimal test |
-| 12 | 9.0 | 0.3 | 8.0 | 0.05 | 0.3 | 0.075 | 0.225 | Oscillatory | Overshooting | Moderate | Excessive overlap | Too aggressive |
+| 11 | 8.0 | 0.6 | 10.0 | 0.01 | 0.3 | 0.055 | 0.134| Too aggressive | Sharp transitions | Good | Slight overlap | Post-optimal test |
+| 12 | 9.0 | 0.3 | 10.0 | 0.01 | 0.2 | 0.051 | 0.134 | Oscillatory | Overshooting | Moderate | Excessive overlap | Too aggressive |
 
 
 ## Implemented Solution
+![image](https://github.com/user-attachments/assets/5de964cc-d75b-4112-876c-922ea1d05dab)
 
 ### Final Parameter Values
 ```python
@@ -207,12 +208,12 @@ spacing = 0.4       # Tight pattern spacing
    - Maximum: 0.133 units (Target: < 0.5 units) ✅
 
 2. **Velocity Control:**
-   - Linear velocity maintained around 0.632 units
+   - Linear velocity maintained
    - Smooth transitions between path segments
    - Stable angular velocity during turns
 
 3. **Pattern Quality:**
-   - Complete coverage (100% completion)
+   - Optimal coverage
    - Uniform line spacing at 0.4 units
    - Clean cornering behavior
 
@@ -251,9 +252,8 @@ spacing = 0.4       # Tight pattern spacing
 - Stable cornering behavior
 
 ### Coverage Efficiency
-- Achieved 100% completion rate
+- Achieved optimal coverage
 - Uniform pattern spacing
-- No gaps in coverage
 
 ### Motion Quality
 - Linear velocity maintained steady state
@@ -266,7 +266,7 @@ The implemented solution successfully achieved:
 - Precise path following with minimal cross-track error
 - Complete area coverage with uniform spacing
 - Stable and efficient motion throughout the pattern
-- All target performance metrics met or exceeded
+- All target performance metrics met
 
 The final parameter configuration represents an optimal balance between:
 - Control responsiveness and stability

@@ -46,7 +46,7 @@ sudo apt install ros-$ROS_DISTRO-rqt*
 ```bash
 pip3 install numpy matplotlib
 ```
-
+---
 ## The Challenge
 
 ### 1. Controller Tuning (60 points)
@@ -80,7 +80,7 @@ Provide a detailed analysis of your tuning process:
 - Performance plots and metrics
 - Challenges encountered and solutions
 - Comparison of different parameter sets
-
+---
 ## Approach
 
 To solve this assignment, the following approach was adopted:
@@ -98,7 +98,7 @@ To solve this assignment, the following approach was adopted:
 4. **Performance Monitoring:**
    - Used `rqt_plot` to visualize trajectory and cross-track error.
    - Analyzed cornering performance and smoothness.
-
+---
 ## Getting Started
 
 ### Repository Setup
@@ -170,7 +170,7 @@ Initial testing revealed several key characteristics of the system:
    - Linear velocity maintained consistent speed during straight paths
    - Angular velocity showed expected peaks during turns
    - Cross-track error remained well within acceptable limits
-
+---
 ## Parameter Testing and Analysis Results
 
 ### Performance Testing Results
@@ -188,7 +188,7 @@ Initial testing revealed several key characteristics of the system:
 | 11 | 8.0 | 0.6 | 10.0 | 0.01 | 0.3 | 0.055 | 0.134| Too aggressive | Sharp transitions | Good | Slight overlap | Post-optimal test |
 | 12 | 9.0 | 0.3 | 10.0 | 0.01 | 0.2 | 0.051 | 0.134 | Oscillatory | Overshooting | Moderate | Excessive overlap | Too aggressive |
 
-
+---
 ## Implemented Solution
 ![image](https://github.com/user-attachments/assets/5de964cc-d75b-4112-876c-922ea1d05dab)
 
@@ -244,6 +244,46 @@ spacing = 0.4       # Tight pattern spacing
    - Provides optimal path density
    - Balances efficiency with thoroughness
 
+## Performance Plots
+
+### Cross-Track Error Analysis
+Image
+#### Key Observations:
+- Average cross-track error: 0.055 units
+- Maximum deviation: 0.133 units
+- Error remains consistently below target threshold (0.2 units)
+- Small periodic variations correspond to path segments
+- Quick recovery from disturbances
+
+### Robot Trajectory
+Image
+#### Pattern Characteristics:
+- Uniform spacing between lines (0.4 units)
+- Clean, consistent turns
+- Parallel path segments
+- Complete area coverage
+- Minimal path overlap
+
+### Velocity Profiles
+
+#### Linear Velocity
+Image
+**Analysis:**
+- Steady-state velocity: ~0.632 m/s
+- Consistent speed during straight segments
+- Smooth acceleration/deceleration
+- Minimal velocity fluctuations
+
+#### Angular Velocity
+Image
+
+**Analysis:**
+- Peak angular velocity during turns: ±1.2 rad/s
+- Sharp, precise turning behavior
+- Clean transitions between turns
+- Minimal oscillations
+
+
 ## Performance Analysis
 
 ### System Stability
@@ -272,19 +312,253 @@ The final parameter configuration represents an optimal balance between:
 - Control responsiveness and stability
 - Coverage completeness and efficiency
 - Motion smoothness and precision
+---
+## Custom Message Performance Metrics Implementation in ROS2
 
-## Extra Credit (10 points)
-Create and implement a custom ROS2 message type to publish detailed performance metrics:
-- Define a custom message type with fields for:
-  - Cross-track error
-  - Current velocity
-  - Distance to next waypoint
-  - Completion percentage
-  - Other relevant metrics
-- Implement the message publisher in your node
-- Document the message structure and usage
+The implementation of a custom ROS2 message allows comprehensive monitoring of the robot's performance during pattern execution by publishing detailed performance metrics in the boustrophedon navigator project.
 
-This will demonstrate understanding of:
-- ROS2 message definitions
-- Custom interface creation
-- Message publishing patterns 
+### Custom Message Package Setup
+
+#### 1. Create the Package
+```bash
+cd ~/ros2_ws/src
+ros2 pkg create --build-type ament_cmake metrics_interfaces
+```
+
+#### 2. Directory Structure
+```
+metrics_interfaces/
+├── msg/
+│   └── PerformanceMetrics.msg
+├── package.xml
+└── CMakeLists.txt
+```
+
+#### 3. Message Definition
+Create the message file at `metrics_interfaces/msg/PerformanceMetrics.msg`:
+
+```
+# Performance metrics for boustrophedon pattern execution
+float64 cross_track_error          
+float64 linear_velocity            
+float64 angular_velocity           
+float64 distance_to_next_waypoint  
+float64 completion_percentage      
+float64 avg_cross_track_error      
+float64 max_cross_track_error      
+float64 angular_error             
+```
+
+#### 4. Package Configuration
+
+##### Update package.xml
+Add the following dependencies to `package.xml`:
+```xml
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>metrics_interfaces</name>
+  <version>0.0.0</version>
+  <description>TODO: Package description</description>
+  <maintainer email="chinmayamrutkar01@gmail.com">chinmay</maintainer>
+  <license>TODO: License declaration</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend> 
+  <member_of_group>rosidl_interface_packages</member_of_group>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
+```
+
+##### Update CMakeLists.txt
+Add the following to `CMakeLists.txt`:
+```cmake
+cmake_minimum_required(VERSION 3.8)
+project(metrics_interfaces)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+# find dependencies
+find_package(ament_cmake REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/PerformanceMetrics.msg"
+)
+ament_export_dependencies(rosidl_default_runtime)
+ament_package()
+```
+
+### Building and Verifying the Package
+
+1. **Build the package:**
+```bash
+cd ~/ros2_ws
+colcon build --packages-select metrics_interfaces
+source install/setup.bash
+```
+
+2. **Verify the message type:**
+```bash
+# Check if message type is available
+ros2 interface show metrics_interfaces/msg/PerformanceMetrics
+```
+
+### Using the Custom Message
+
+#### 1. In BoustrophedonController Node
+
+##### Add Dependencies
+Update first_order_boustrophedon_navigator package's `package.xml`:
+```xml
+<depend>metrics_interfaces</depend>
+```
+
+#### Implementation 
+```python
+#!/usr/bin/env python3
+
+from collections import deque
+from std_msgs.msg import Float64
+from rcl_interfaces.msg import SetParametersResult
+from metrics_interfaces.msg import PerformanceMetrics
+
+
+class BoustrophedonController(Node):
+  def __init__(self):
+        self.declare_parameters(
+            namespace='',
+            parameters=[
+                ('Kp_linear', 7.0),
+                ('Kd_linear', 0.6),
+                ('Kp_angular', 10),
+                ('Kd_angular', 0.01),
+                ('spacing', 0.4)
+            ]
+        )
+        # Create publisher and subscriber
+        self.velocity_publisher = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
+        self.pose_subscriber = self.create_subscription(Pose, '/turtle1/pose', self.pose_callback, 10)
+        #Custom ROS2 message type to publish detailed performance metrics
+        self.performance_metrics_publisher = self.create_publisher(PerformanceMetrics, 'performance_metrics', 10) 
+        # Lawnmower pattern parameters
+        self.waypoints = self.generate_waypoints()
+        self.current_waypoint = 0
+
+    def publish_performace_metrics(self, cross_track_error, linear_velocity, angular_velocity, angular_error):
+        metrics_msg = PerformanceMetrics()
+        metrics_msg.cross_track_error = cross_track_error
+        metrics_msg.linear_velocity = linear_velocity
+        metrics_msg.angular_velocity = angular_velocity
+        metrics_msg.distance_to_next_waypoint = self.get_distance(self.pose.x, 
+                                                      self.pose.y, 
+                                                      self.waypoints[self.current_waypoint-1][0], 
+                                                      self.waypoints[self.current_waypoint-1][1])
+        
+        metrics_msg.completion_percentage = (self.current_waypoint / (len(self.waypoints))) * 100
+        
+        if len(self.cross_track_errors) > 1:
+            metrics_msg.avg_cross_track_error = (sum(self.cross_track_errors)/len(self.cross_track_errors))
+            metrics_msg.max_cross_track_error = max(self.cross_track_errors)
+        else :
+            metrics_msg.avg_cross_track_error = 0.0
+            metrics_msg.max_cross_track_error = 0.0
+        metrics_msg.angular_error = angular_error
+        self.performance_metrics_publisher.publish(metrics_msg)
+
+    def control_loop(self):
+
+        #Publishing Metrics Message
+        self.publish_performace_metrics(cross_track_error, linear_velocity, angular_velocity, angular_error)
+
+
+```
+
+### 2. Monitoring Metrics
+
+#### Using Command Line
+```bash
+# Monitor metrics in real-time
+ros2 topic echo /performance_metrics
+```
+
+#### Using rqt_plot
+```bash
+ros2 run rqt_plot rqt_plot
+```
+Add topics:
+- `/performance_metrics/cross_track_error`
+- `/performance_metrics/linear_velocity`
+- `/performance_metrics/angular_velocity`
+- `/performance_metrics/completion_percentage`
+---
+## Challenges and Solutions
+
+### 1. Parameter Tuning
+
+#### Challenge:
+Manual tuning of multiple PD controller parameters was time-consuming and often resulted in suboptimal performance.
+
+#### Solution:
+- Developed systematic tuning methodology by listing out all the outcomes achieved for different Kp_linear, Kd_linear, Kp_angular, Kd_angular and spacing values
+- Started with conservative gains and incrementally adjusted
+- Used rqt_reconfigure for real-time parameter adjustment
+- Documented parameter effects and interactions
+- Results: Found optimal parameter set through structured testing
+
+### 2. System Stability
+
+#### Challenge:
+Early implementations showed oscillatory behavior and instability, especially during direction changes.
+
+#### Solution:
+- Carefully tuned derivative gains (Kd_linear and Kd_angular)
+- Implemented error threshold monitoring
+- Added stability checks in control loop
+- Results: Achieved stable operation throughout the pattern
+---
+### Future Improvements
+
+1. **Adaptive Control**
+   - Implement gain scheduling based on path segments
+   - Add dynamic parameter adjustment
+
+2. **Optimization**
+   - Develop automated parameter tuning
+   - Implement path optimization algorithms
+
+3. **Enhanced Monitoring**
+   - Add visualization tools for coverage mapping
+   - Implement performance prediction
+
+4. **Robustness**
+   - Add disturbance rejection capabilities
+   - Implement fault detection and recovery
+---
+### Lessons Learned
+
+1. **Controller Design**
+   - The Proportional (P) component serves as the primary driver of the system response:
+     - Acts as an immediate response to position errors
+     - Larger P gains result in more aggressive corrections
+     - Too high P gains can lead to overshooting and oscillations
+     - Too low P gains result in sluggish response
+   - The Derivative (D) component acts as a motion predictor:
+     - Monitors the rate of change of the error
+     - Provides damping effect to prevent overshooting
+     - Higher D gains smooth the motion but can make system sluggish
+     - Too low D gains may not sufficiently dampen oscillations
+   - Parameter tuning requires systematic approach
+   - Balance between P and D gains is crucial for optimal performance
+
+2. **Pattern Generation**
+   - Spacing parameter significantly affects coverage quality
+   - Corner handling requires special attention
+
+3. **Implementation**
+   - Real-time monitoring is essential for tuning
+   - Custom message types enhance analysis capabilities
+---

@@ -173,20 +173,53 @@ Initial testing revealed several key characteristics of the system:
 ---
 ## Parameter Testing and Analysis Results
 
-### Performance Testing Results
+### Performance Testing Results with discussion on tuning methodology
 
 | Test Case | Kp_linear | Kd_linear | Kp_angular | Kd_angular | Spacing | Avg Cross-Track Error | Max Cross-Track Error | Linear Velocity Profile | Angular Velocity Profile | Cornering Performance | Coverage Quality | Notes |
 |-----------|-----------|-----------|------------|------------|---------|---------------------|---------------------|----------------------|----------------------|---------------------|------------------|-------|
 | 1 | 1.0 | 0.1 | 1.0 | 0.1 | 1.0 | 0.984 | 2.209 | Sluggish | Inconsistent | Poor - Wide turns | Uneven coverage | Initial test - Too conservative |
-| 2 | 7.0 | 0.1 | 3.0 | 0.2 | 1.0 | 0.556 | 0.995 | Improved | Some oscillations |  Poor - Wide turns | Uneven coverage | Better tracking but unstable |
+| 2 | 7.0 | 0.1 | 3.0 | 0.2 | 1.0 | 0.556 | 0.995 | Improved | Some oscillations |  Poor - Wide turns | Excessive overlap | Huge cross track error |
 | 3 | 10.0 | 0.1 | 5.0 | 0.2 | 1.0 | 0.281 | 0.609 | More responsive | Some oscillations | Good | Even spacing | Good Spacing |
 | 4 | 10.0 | 0.1 | 7.0 | 0.1 | 1.0 | 0.157 | 0.323 | More responsive | Better stability | Good | Even spacing | Getting closer to target |
 | 5 | 10.0 | 0.1 | 10.0 | 0.05 | 1.0 | 0.053 | 0.185 | Agressive and Oscilating | Some oscillations | Not good | Uneven spacing | Too agressive |
 | 6 | 8.0 | 0.5 | 10.0 | 0.05 | 1.0 | 0.053 | 0.146 | Stable | Some oscillations | Better | Better evenly spacing | Can be fine tuned |
 | 7 | 7.0 | 0.5 | 10.0 | 0.02 | 0.5 | 0.045 | 0.133 | Very good | Smooth | Good evenly spacing | Very good | Close to target |
-| **10** | **7.0** | **0.6** | **10.0** | **0.01** | **0.4** | **0.055** | **0.133** | **Excellent** | **Perfect transitions** | **Optimal** | **Optimal spacing** | **Best Performance** ✅ |
-| 11 | 8.0 | 0.6 | 10.0 | 0.01 | 0.3 | 0.055 | 0.134| Too aggressive | Sharp transitions | Good | Slight overlap | Post-optimal test |
-| 12 | 9.0 | 0.3 | 10.0 | 0.01 | 0.2 | 0.051 | 0.134 | Oscillatory | Overshooting | Moderate | Excessive overlap | Too aggressive |
+| **8** | **7.0** | **0.6** | **10.0** | **0.01** | **0.4** | **0.055** | **0.133** | **Excellent** | **Perfect transitions** | **Optimal** | **Optimal spacing** | **Best Performance** ✅ |
+| 9 | 8.0 | 0.6 | 10.0 | 0.01 | 0.3 | 0.055 | 0.134| Too aggressive | Sharp transitions | Good | Slight overlap | Post-optimal test |
+| 10 | 9.0 | 0.3 | 10.0 | 0.01 | 0.2 | 0.051 | 0.134 | Oscillatory | Overshooting | Moderate | Excessive overlap | Too aggressive |
+
+### Few Test Case Results:
+
+#### Test Case 2:
+![image](https://github.com/user-attachments/assets/2f29dc21-1590-4346-9b52-e0f556733b86)
+**Analysis:**
+1. **Cross-Track Error:**
+   - Average: 0.556 units (Target: < 0.2 units) ❌
+   - Maximum: 0.995 units (Target: < 0.5 units) ❌
+
+2. **Velocity Control:**
+   - Linear velocity maintained ✅
+   - Smooth transitions between path segments ✅
+   - Stable angular velocity during turns ✅
+
+3. **Pattern Quality:**
+   - Excessive Overlapping ❌
+   - Clean cornering behavior ✅
+
+#### Test Case 10:
+![image](https://github.com/user-attachments/assets/4c80bec4-39bd-482c-b5f4-848c760e5ca3)
+**Analysis:**
+1. **Cross-Track Error:**
+   - Average: 0.051 units (Target: < 0.2 units) ❌
+   - Maximum: 0.134 units (Target: < 0.5 units) ❌
+
+2. **Velocity Control:**
+   - Linear velocity not maintained ❌
+   - Unstable angular velocity during turns ❌
+
+3. **Pattern Quality:**
+   - Excessive Overlapping ❌
+   - Not good cornering in some situations ❌
 
 ---
 ## Implemented Solution
@@ -208,14 +241,14 @@ spacing = 0.4       # Tight pattern spacing
    - Maximum: 0.133 units (Target: < 0.5 units) ✅
 
 2. **Velocity Control:**
-   - Linear velocity maintained
-   - Smooth transitions between path segments
-   - Stable angular velocity during turns
+   - Linear velocity maintained ✅
+   - Smooth transitions between path segments ✅
+   - Stable angular velocity during turns ✅
 
 3. **Pattern Quality:**
-   - Optimal coverage
-   - Uniform line spacing at 0.4 units
-   - Clean cornering behavior
+   - Optimal coverage ✅
+   - Uniform line spacing at 0.4 units ✅
+   - Clean cornering behavior ✅
 
 ### Parameter Justification
 
@@ -246,43 +279,37 @@ spacing = 0.4       # Tight pattern spacing
 
 ## Performance Plots
 
-### Cross-Track Error Analysis
-Image
-#### Key Observations:
+### Cross-Track Error and Velocity Profiles Analysis
+![image](https://github.com/user-attachments/assets/5f0c2c52-07cd-47af-b138-08f9d92688cd) <br>
+
+#### Cross-Track Error Analysis:
 - Average cross-track error: 0.055 units
 - Maximum deviation: 0.133 units
 - Error remains consistently below target threshold (0.2 units)
 - Small periodic variations correspond to path segments
 - Quick recovery from disturbances
 
-### Robot Trajectory
-Image
-#### Pattern Characteristics:
-- Uniform spacing between lines (0.4 units)
-- Clean, consistent turns
-- Parallel path segments
-- Complete area coverage
-- Minimal path overlap
-
-### Velocity Profiles
-
-#### Linear Velocity
-Image
-**Analysis:**
-- Steady-state velocity: ~0.632 m/s
+#### Linear Velocity Analysis:
+- Steady-state velocity
 - Consistent speed during straight segments
 - Smooth acceleration/deceleration
 - Minimal velocity fluctuations
 
-#### Angular Velocity
-Image
-
-**Analysis:**
-- Peak angular velocity during turns: ±1.2 rad/s
+#### Angular Velocity Analysis:
+- Peak angular velocity during turns
 - Sharp, precise turning behavior
 - Clean transitions between turns
 - Minimal oscillations
 
+### Robot Trajectory
+![image](https://github.com/user-attachments/assets/f8eaca20-900b-496c-86e6-215971d8a4ca)
+
+#### Pattern Characteristics:
+- Uniform spacing between lines (0.4 units)
+- Clean, consistent turns
+- Parallel path segments
+- Optimal area coverage
+- Minimal path overlap
 
 ## Performance Analysis
 

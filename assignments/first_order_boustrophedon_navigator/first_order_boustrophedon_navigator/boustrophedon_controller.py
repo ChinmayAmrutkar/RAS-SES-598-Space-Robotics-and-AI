@@ -9,6 +9,7 @@ import math
 from collections import deque
 from std_msgs.msg import Float64
 from rcl_interfaces.msg import SetParametersResult
+from metrics_interfaces.msg import PerformanceMetrics
 
 
 class BoustrophedonController(Node):
@@ -19,11 +20,11 @@ class BoustrophedonController(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('Kp_linear', 10.0),
-                ('Kd_linear', 0.1),
-                ('Kp_angular', 5.0),
-                ('Kd_angular', 0.2),
-                ('spacing', 1.0)
+                ('Kp_linear', 7.0),
+                ('Kd_linear', 0.6),
+                ('Kp_angular', 10),
+                ('Kd_angular', 0.01),
+                ('spacing', 0.4)
             ]
         )
         
@@ -40,7 +41,8 @@ class BoustrophedonController(Node):
         # Create publisher and subscriber
         self.velocity_publisher = self.create_publisher(Twist, '/turtle1/cmd_vel', 10)
         self.pose_subscriber = self.create_subscription(Pose, '/turtle1/pose', self.pose_callback, 10)
-        
+        self.performance_metrics_publisher = self.create_publisher(PerformanceMetrics, 'performance_metrics', 10) #Custom ROS2 message type to publish detailed performance metrics
+
         # Lawnmower pattern parameters
         self.waypoints = self.generate_waypoints()
         self.current_waypoint = 0
@@ -158,6 +160,30 @@ class BoustrophedonController(Node):
     def get_angle(self, x1, y1, x2, y2):
         return math.atan2(y2 - y1, x2 - x1)
 
+    def publish_performace_metrics(self, cross_track_error, linear_velocity, angular_velocity, angular_error):
+        metrics_msg = PerformanceMetrics()
+        metrics_msg.cross_track_error = cross_track_error
+        metrics_msg.linear_velocity = linear_velocity
+        metrics_msg.angular_velocity = angular_velocity
+
+        metrics_msg.distance_to_next_waypoint = self.get_distance(self.pose.x, 
+                                                      self.pose.y, 
+                                                      self.waypoints[self.current_waypoint-1][0], 
+                                                      self.waypoints[self.current_waypoint-1][1])
+        
+        metrics_msg.completion_percentage = (self.current_waypoint / (len(self.waypoints))) * 100
+        
+        if len(self.cross_track_errors) > 1:
+            metrics_msg.avg_cross_track_error = (sum(self.cross_track_errors)/len(self.cross_track_errors))
+            metrics_msg.max_cross_track_error = max(self.cross_track_errors)
+        else :
+            metrics_msg.avg_cross_track_error = 0.0
+            metrics_msg.max_cross_track_error = 0.0
+
+        metrics_msg.angular_error = angular_error
+
+        self.performance_metrics_publisher.publish(metrics_msg)
+
     def control_loop(self):
         if self.current_waypoint >= len(self.waypoints):
             # Pattern complete
@@ -209,6 +235,9 @@ class BoustrophedonController(Node):
         if distance < 0.1:  # Within 0.1 units of target
             self.current_waypoint += 1
             self.get_logger().info(f'Reached waypoint {self.current_waypoint}')
+        
+        #Publishing Metrics Message
+        self.publish_performace_metrics(cross_track_error, linear_velocity, angular_velocity, angular_error)
 
     def parameter_callback(self, params):
         """Callback for parameter updates"""

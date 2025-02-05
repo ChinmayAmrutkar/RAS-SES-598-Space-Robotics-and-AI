@@ -5,21 +5,16 @@ from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
 import math
 import time
-import numpy as np
 
 from px4_msgs.msg import VehicleOdometry, OffboardControlMode, VehicleCommand, VehicleStatus, TrajectorySetpoint
-from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
-from geometry_msgs.msg import PoseStamped
 
-class TerrainMappingController(Node):
+class SpiralTrajectory(Node):
     """
-    A ROS 2 node for controlling PX4 drone for terrain mapping using ORBSLAM3.
-    This controller implements a lawnmower pattern trajectory over the Bishop Fault Scarp
-    while maintaining a constant height and capturing images for SLAM.
+    A ROS 2 node for executing a spiral descent trajectory with PX4.
+    The drone starts from a specified height and performs a descending spiral pattern.
     """
     def __init__(self):
-        super().__init__('terrain_mapping_controller')
+        super().__init__('spiral_trajectory')
 
         # Configure QoS profile for PX4 communication
         qos_profile = QoSProfile(
@@ -44,39 +39,24 @@ class TerrainMappingController(Node):
         self.vehicle_status_subscriber = self.create_subscription(
             VehicleStatus, '/fmu/out/vehicle_status',
             self.vehicle_status_callback, qos_profile)
-        self.orbslam_pose_subscriber = self.create_subscription(
-            PoseStamped, '/orbslam3/camera_pose',
-            self.orbslam_pose_callback, 10)
 
         # Initialize variables
         self.offboard_setpoint_counter = 0
         self.vehicle_odometry = VehicleOdometry()
         self.vehicle_status = VehicleStatus()
         self.start_time = time.time()
-        self.cv_bridge = CvBridge()
-        self.current_slam_pose = None
         
-        # Flight parameters
-        self.MAPPING_HEIGHT = 20.0  # meters
-        self.SURVEY_SPEED = 5.0  # m/s
-        self.AREA_LENGTH = 100.0  # meters (X direction)
-        self.AREA_WIDTH = 50.0  # meters (Y direction)
-        self.STRIP_SPACING = 10.0  # meters between parallel survey lines
+        # Spiral parameters
+        self.INITIAL_HEIGHT = 50.0  # meters
+        self.SPIRAL_DIAMETER = 50.0  # meters
+        self.DESCENT_RATE = 0.5     # m/s
+        self.SPIRAL_PERIOD = 20.0   # seconds for one complete revolution
+        self.MIN_HEIGHT = 5.0       # minimum height before landing
         self.HEIGHT_REACHED_THRESHOLD = 0.3  # meters
         
-        # Survey pattern parameters
-        self.num_strips = int(self.AREA_WIDTH / self.STRIP_SPACING) + 1
-        self.current_strip = 0
-        self.strip_direction = 1  # 1 for forward, -1 for backward
-        
         # State machine
-        self.state = "TAKEOFF"  # States: TAKEOFF, SURVEY, RTL
+        self.state = "TAKEOFF"  # States: TAKEOFF, SPIRAL, LAND
         
-        # Control parameters
-        self.height_P_gain = 2.0
-        self.max_vertical_velocity = 2.0
-        self.takeoff_velocity = 1.5
-
         # Create a timer to publish control commands
         self.create_timer(0.1, self.timer_callback)  # 10Hz control loop
 
@@ -87,10 +67,6 @@ class TerrainMappingController(Node):
     def vehicle_status_callback(self, msg):
         """Callback function for vehicle status data."""
         self.vehicle_status = msg
-
-    def orbslam_pose_callback(self, msg):
-        """Callback function for ORBSLAM3 pose estimates."""
-        self.current_slam_pose = msg
 
     def arm(self):
         """Send an arm command to the vehicle."""
@@ -146,20 +122,23 @@ class TerrainMappingController(Node):
     def is_at_target_height(self):
         """Check if the drone has reached the target height."""
         current_height = -self.vehicle_odometry.position[2]
-        return abs(current_height - self.MAPPING_HEIGHT) < self.HEIGHT_REACHED_THRESHOLD
+        return abs(current_height - self.INITIAL_HEIGHT) < self.HEIGHT_REACHED_THRESHOLD
 
-    def calculate_survey_position(self):
-        """Calculate the next position in the lawnmower pattern."""
-        # Calculate Y position based on current strip
-        y_pos = (self.current_strip * self.STRIP_SPACING) - (self.AREA_WIDTH / 2)
+    def calculate_spiral_position(self, time_elapsed):
+        """Calculate position along spiral trajectory."""
+        # Calculate angular position
+        angle = (2 * math.pi * time_elapsed) / self.SPIRAL_PERIOD
+        radius = self.SPIRAL_DIAMETER / 2.0
         
-        # Calculate X position based on direction
-        if self.strip_direction == 1:
-            x_pos = self.AREA_LENGTH / 2
-        else:
-            x_pos = -self.AREA_LENGTH / 2
-            
-        return x_pos, y_pos
+        # Calculate position
+        x = radius * math.cos(angle)
+        y = radius * math.sin(angle)
+        z = -(self.INITIAL_HEIGHT - self.DESCENT_RATE * time_elapsed)
+        
+        # Calculate yaw to always point towards the center
+        yaw = angle + math.pi
+        
+        return x, y, z, yaw
 
     def timer_callback(self):
         """Timer callback for control loop."""
@@ -175,64 +154,54 @@ class TerrainMappingController(Node):
                 self.publish_trajectory_setpoint(
                     x=0.0,
                     y=0.0,
-                    z=-self.MAPPING_HEIGHT,
+                    z=-self.INITIAL_HEIGHT,
                     yaw=0.0
                 )
                 self.get_logger().info(f"Taking off... Current height: {-self.vehicle_odometry.position[2]:.2f}m")
             else:
-                self.state = "SURVEY"
-                self.get_logger().info("Starting survey pattern")
+                self.state = "SPIRAL"
+                self.start_time = time.time()
+                self.get_logger().info("Starting spiral descent")
 
-        elif self.state == "SURVEY":
-            x_target, y_target = self.calculate_survey_position()
+        elif self.state == "SPIRAL":
+            time_elapsed = time.time() - self.start_time
+            x, y, z, yaw = self.calculate_spiral_position(time_elapsed)
             
-            # Check if we've reached the end of the current strip
-            current_x = self.vehicle_odometry.position[0]
-            if (self.strip_direction == 1 and current_x >= self.AREA_LENGTH/2) or \
-               (self.strip_direction == -1 and current_x <= -self.AREA_LENGTH/2):
-                self.current_strip += 1
-                self.strip_direction *= -1
-                
-                # Check if we've completed the survey
-                if self.current_strip >= self.num_strips:
-                    self.state = "RTL"
-                    self.get_logger().info("Survey complete, returning to launch")
-                    return
+            # Check if we've reached minimum height
+            if -z <= self.MIN_HEIGHT:
+                self.state = "LAND"
+                self.get_logger().info("Reached minimum height, preparing to land")
+            else:
+                self.publish_trajectory_setpoint(x=x, y=y, z=z, yaw=yaw)
+                self.get_logger().info(
+                    f"Spiral descent... Height: {-z:.2f}m, "
+                    f"Position: ({x:.2f}, {y:.2f})"
+                )
 
-            self.publish_trajectory_setpoint(
-                x=x_target,
-                y=y_target,
-                z=-self.MAPPING_HEIGHT,
-                yaw=0.0  # Keep camera pointing forward
-            )
-
-            # Log progress
-            progress = (self.current_strip * 100.0) / self.num_strips
-            self.get_logger().info(
-                f"Survey progress: {progress:.1f}%, "
-                f"Strip: {self.current_strip + 1}/{self.num_strips}, "
-                f"Height: {-self.vehicle_odometry.position[2]:.2f}m"
-            )
-
-        elif self.state == "RTL":
+        elif self.state == "LAND":
             self.publish_trajectory_setpoint(
                 x=0.0,
                 y=0.0,
-                z=-self.MAPPING_HEIGHT,
+                z=0.0,
                 yaw=0.0
             )
+            self.get_logger().info("Landing...")
 
         self.offboard_setpoint_counter += 1
 
-def main(args=None):
-    rclpy.init(args=args)
-    controller = TerrainMappingController()
+def main():
+    print('Starting spiral trajectory...')
+    rclpy.init()
+    
+    spiral_node = SpiralTrajectory()
+    print('Spiral trajectory node created. Starting control loop...')
+    
     try:
-        rclpy.spin(controller)
+        rclpy.spin(spiral_node)
     except KeyboardInterrupt:
-        controller.get_logger().info('Stopping controller...')
+        print('Stopping spiral trajectory...')
     finally:
-        controller.destroy_node()
+        spiral_node.destroy_node()
         rclpy.shutdown()
 
 if __name__ == '__main__':

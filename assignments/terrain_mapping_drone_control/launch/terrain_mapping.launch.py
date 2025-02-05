@@ -1,60 +1,69 @@
+#!/usr/bin/env python3
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import IncludeLaunchDescription, ExecuteProcess
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import ExecuteProcess
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 import os
 
 def generate_launch_description():
-    """Generate launch description for terrain mapping system."""
+    """Generate launch description for terrain mapping with camera bridge."""
     
-    # Get the path to this package's share directory
-    pkg_share = FindPackageShare(package='terrain_mapping_drone_control').find('terrain_mapping_drone_control')
-    
-    # Path to PX4 SITL launch file
-    px4_dir = FindPackageShare(package='px4_ros_com').find('px4_ros_com')
-    px4_launch_dir = os.path.join(px4_dir, 'launch')
-    
-    # Include PX4 SITL launch
-    px4_sitl_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(px4_launch_dir, 'px4_sitl.launch.py')
-        ),
-        launch_arguments={
-            'world': 'bishop_fault_scarp',  # Custom world for Bishop Fault Scarp
-            'verbose': 'true'
-        }.items()
+    # Create bridge nodes for each topic
+    camera_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='camera_bridge',
+        arguments=[
+            '/camera@sensor_msgs/msg/Image@gz.msgs.Image',
+        ],
+        output='screen'
     )
-    
-    # Launch ORBSLAM3 node
-    orbslam3_node = Node(
-        package='orbslam3_ros2',
-        executable='orbslam3_mono_node',
-        name='orbslam3_mono',
-        output='screen',
-        parameters=[{
-            'camera_config_file': os.path.join(pkg_share, 'config', 'camera_calibration.yaml'),
-            'vocabulary_file': os.path.join(pkg_share, 'config', 'ORBvoc.txt'),
-            'use_viewer': True,
-            'save_trajectory': True
-        }]
+
+    depth_camera_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='depth_camera_bridge',
+        arguments=[
+            '/depth_camera@sensor_msgs/msg/Image@gz.msgs.Image',
+        ],
+        output='screen'
     )
-    
-    # Launch terrain mapping controller
+
+    camera_info_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='camera_info_bridge',
+        arguments=[
+            '/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
+        ],
+        output='screen'
+    )
+
+    pointcloud_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        name='pointcloud_bridge',
+        arguments=[
+            '/depth_camera/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloud',
+        ],
+        output='screen'
+    )
+
+    # Launch spiral trajectory controller
     controller_node = Node(
         package='terrain_mapping_drone_control',
-        executable='terrain_mapping_controller',
-        name='terrain_mapping_controller',
-        output='screen',
-        parameters=[
-            os.path.join(pkg_share, 'config', 'terrain_mapping_params.yaml')
-        ]
+        executable='spiral_trajectory',
+        name='spiral_trajectory',
+        output='screen'
     )
-    
+
     # Create and return launch description
     return LaunchDescription([
-        px4_sitl_launch,
-        orbslam3_node,
+        camera_bridge,
+        depth_camera_bridge,
+        camera_info_bridge,
+        pointcloud_bridge,
         controller_node
     ]) 

@@ -5,9 +5,9 @@ from glob import glob
 package_name = 'terrain_mapping_drone_control'
 
 setup(
-    name=package_name,
+    name=package_name.replace('_', '-'),
     version='0.0.1',
-    packages=find_packages(),
+    packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),

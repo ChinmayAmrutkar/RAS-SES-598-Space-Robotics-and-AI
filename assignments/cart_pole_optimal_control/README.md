@@ -91,14 +91,14 @@ The earthquake generator (`earthquake_force_generator.py`) provides realistic di
 ## Getting Started
 
 ### Prerequisites
-- ROS2 Humble
+- ROS2 Humble or Jazzy
 - Gazebo Garden
 - Python 3.8+
 - Required Python packages: numpy, scipy
 
 #### Installation Commands
 ```bash
-# Set ROS_DISTRO
+# Set ROS_DISTRO as per your configuration
 export ROS_DISTRO=humble
 
 # Install ROS2 packages

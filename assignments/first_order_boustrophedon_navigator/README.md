@@ -191,7 +191,7 @@ Initial testing revealed several key characteristics of the system:
 ### Few Test Case Results:
 
 #### Test Case 2:
-![image](https://github.com/user-attachments/assets/2f29dc21-1590-4346-9b52-e0f556733b86)
+![image](https://github.com/user-attachments/assets/2f29dc21-1590-4346-9b52-e0f556733b86) <br>
 **Analysis:**
 1. **Cross-Track Error:**
    - Average: 0.556 units (Target: < 0.2 units) ❌
@@ -207,7 +207,7 @@ Initial testing revealed several key characteristics of the system:
    - Clean cornering behavior ✅
 
 #### Test Case 10:
-![image](https://github.com/user-attachments/assets/4c80bec4-39bd-482c-b5f4-848c760e5ca3)
+![image](https://github.com/user-attachments/assets/4c80bec4-39bd-482c-b5f4-848c760e5ca3) <br>
 **Analysis:**
 1. **Cross-Track Error:**
    - Average: 0.051 units (Target: < 0.2 units) ❌

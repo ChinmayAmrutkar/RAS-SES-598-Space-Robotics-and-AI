@@ -1,13 +1,11 @@
 # Cart-Pole Optimal Control Assignment
 
-[Watch the demo video](https://drive.google.com/file/d/1UEo88tqG-vV_pkRSoBF_-FWAlsZOLoIb/view?usp=sharing)
-![image](https://github.com/user-attachments/assets/c8591475-3676-4cdf-8b4a-6539e5a2325f)
-
 ## Overview
-This assignment challenges students to tune and analyze an LQR controller for a cart-pole system subject to earthquake disturbances. The goal is to maintain the pole's stability while keeping the cart within its physical constraints under external perturbations. The earthquake force generator in this assignment introduces students to simulating and controlling systems under seismic disturbances, which connects to the Virtual Shake Robot covered later in the course. The skills developed here in handling dynamic disturbances and maintaining system stability will be useful for optimal control of space robots, such as Lunar landers or orbital debris removal robots.
+This project involves tuning and analyzing an LQR controller for a cart-pole system subject to earthquake disturbances. The goal is to maintain the pole's stability while keeping the cart within its physical constraints under external perturbations. The earthquake force generator introduces simulating and controlling systems under seismic disturbances. The ability to handle dynamic disturbances and maintain system stability is crucial for the optimal control of space-based robotic systems, including applications such as Lunar landers and orbital debris removal robots.
 
 ## System Description
-The assignment is based on the problem formalism here: https://underactuated.mit.edu/acrobot.html#cart_pole
+The project is based on the problem formalism here: https://underactuated.mit.edu/acrobot.html#cart_pole
+
 ### Physical Setup
 - Inverted pendulum mounted on a cart
 - Cart traversal range: ±2.5m (total range: 5m)
@@ -23,7 +21,7 @@ The system includes an earthquake force generator that introduces external distu
 - Random variations in amplitude and phase
 - Additional Gaussian noise
 
-## Assignment Objectives
+## Objectives
 
 ### Core Requirements
 1. Analyze and tune the provided LQR controller to:
@@ -91,7 +89,7 @@ The earthquake generator (`earthquake_force_generator.py`) provides realistic di
 ## Getting Started
 
 ### Prerequisites
-- ROS2 Humble or Jazzy
+- ROS2 Jazzy
 - Gazebo Garden
 - Python 3.8+
 - Required Python packages: numpy, scipy
@@ -99,7 +97,7 @@ The earthquake generator (`earthquake_force_generator.py`) provides realistic di
 #### Installation Commands
 ```bash
 # Set ROS_DISTRO as per your configuration
-export ROS_DISTRO=humble
+export ROS_DISTRO=jazzy
 
 # Install ROS2 packages
 sudo apt update
@@ -114,47 +112,6 @@ sudo apt install -y \
 pip3 install numpy scipy control
 ```
 
-### Repository Setup
-
-#### If you already have a fork of the course repository:
-```bash
-# Navigate to your local copy of the repository
-cd ~/RAS-SES-598-Space-Robotics-and-AI
-
-# Add the original repository as upstream (if not already done)
-git remote add upstream https://github.com/DREAMS-lab/RAS-SES-598-Space-Robotics-and-AI.git
-
-# Fetch the latest changes from upstream
-git fetch upstream
-
-# Checkout your main branch
-git checkout main
-
-# Merge upstream changes
-git merge upstream/main
-
-# Push the updates to your fork
-git push origin main
-```
-
-#### If you don't have a fork yet:
-1. Fork the course repository:
-   - Visit: https://github.com/DREAMS-lab/RAS-SES-598-Space-Robotics-and-AI
-   - Click "Fork" in the top-right corner
-   - Select your GitHub account as the destination
-
-2. Clone your fork:
-```bash
-cd ~/
-git clone https://github.com/YOUR_USERNAME/RAS-SES-598-Space-Robotics-and-AI.git
-```
-
-### Create Symlink to ROS2 Workspace
-```bash
-# Create symlink in your ROS2 workspace
-cd ~/ros2_ws/src
-ln -s ~/RAS-SES-598-Space-Robotics-and-AI/assignments/cart_pole_optimal_control .
-```
 
 ### Building and Running
 ```bash
@@ -194,7 +151,9 @@ Two types of forces are visualized:
 
 Arrow lengths are proportional to force magnitudes.
 
-## Analysis Requirements
+## Analysis
+
+
 
 ### Performance Metrics
 Students should analyze:

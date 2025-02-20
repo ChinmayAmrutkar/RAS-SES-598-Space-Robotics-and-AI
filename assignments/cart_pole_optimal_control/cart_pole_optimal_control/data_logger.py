@@ -189,6 +189,3 @@ def main(args=None):
             node.get_logger().info(f"Average Control Effort: {metrics['average_control_effort']:.4f}")
         else:
             node.get_logger().info("No data was recorded.")
-
-        # Append final metrics to the
-

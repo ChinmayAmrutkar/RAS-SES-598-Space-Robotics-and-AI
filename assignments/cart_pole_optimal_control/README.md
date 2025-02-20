@@ -202,9 +202,48 @@ We collected the following metrics for each test case over a 180-seconds simulat
 | **Case 4**    | `diag([1.0, 1.0, 50.0, 10.0])`               | 0.1          | 0.1922 ❌                | 1.2798 ❌              | 75.61 ✅                   | 21.96 ❌              | 2.50 ❌                       | ❌                      |
 | **Case 5**    | `diag([20.0, 1.0, 20.0, 10.0])`              | 0.05         | 0.0643 ✅                | 0.1529 ✅              | 78.13 ✅                   | 0.00 ✅               | 0.59 ✅                       | ✅                      |
 
-### 4. Analysis and Discussion
+### 4. **Case-by-Case Analysis**
 
-#### 4.1 Baseline Performance (Case 1)
+The following graph shows the comparative analysis of **Cart Position, Pole Angle, Control Force, Cart Velocity, and Pole Angular Velocity** for all five tuning cases.  
+
+
+![image](https://github.com/user-attachments/assets/fbd6a034-91f3-4651-af02-3bdb78e954e1)
+
+
+#### **Observations & Insights**
+##### **Case 1: High Cart Displacement, Moderate Stability**
+- **Cart reached ±2.5m limit**, indicating instability.
+- **Moderate stability (59.2s)** before reaching limits.
+- **Decent pole angle control**, but still larger than Case 2 and 5.
+- **Control effort is moderate**, but not optimized for best results.
+
+##### **Case 2: Best Overall Stability and Performance**
+- **Longest stable operation without exceeding physical limits (71.1s).**
+- **Minimal cart displacement (0.25m) and lowest peak control force.**
+- **Best performance trade-off between stability and control effort.**
+- ✅ **Best case for practical implementation.**
+
+##### **Case 3: Unstable with High Cart Motion**
+- **Cart reached ±2.5m**, making it unreliable.
+- **Short stable duration (20.6s), failing to hold balance.**
+- **Higher control force usage but unsuccessful at keeping stability.**
+- ❌ **Not suitable due to lack of effective balance retention.**
+
+##### **Case 4: Worst Stability and Control**
+- **Cart reached ±2.5m almost instantly (9s).**
+- **Highest pole deviation (0.192 rad), making it impractical.**
+- **Low control effort, but ineffective balance.**
+- ❌ **Worst performing case with excessive instability.**
+
+##### **Case 5: Best for Long-Term Stability, High Control Effort**
+- **Longest stable operation (105s), slightly better than Case 2.**
+- **Small cart displacement (0.59m), but control force is very high.**
+- **Control effort is highest, meaning more energy is used to stabilize.**
+- ✅ **Best for stability but may not be the most energy-efficient choice.**
+
+### 5. Analysis and Discussion
+
+#### 5.1 Baseline Performance (Case 1)
 - **System Behavior:**  
   The baseline controller (Case 1) allowed the cart to reach the physical limit (±2.5 m), resulting in high RMS cart error and a maximum cart displacement of 2.5 m. Recovery times were moderate, indicating that once disturbed, the system took about 2.87 s to recover.<br>
 <br>
@@ -217,7 +256,7 @@ https://github.com/user-attachments/assets/4ffc95ac-5e5e-48de-8d5f-46d6dfa11622
 - **Bottlenecks:**  
   The low cart weight in Q contributed to poor cart regulation, resulting in significant displacement.
 
-#### 4.2 Parameter Effects
+#### 5.2 Parameter Effects
 - **Cart Position Weight (Case 2):**  
   Increasing the weight on cart position reduced RMS cart error dramatically (0.1089 m) and kept the cart near the setpoint (maximum displacement of only 0.2516 m). This case showed no recovery time (indicating the system remained stable without significant disturbances).<br>
 
@@ -248,7 +287,7 @@ https://github.com/user-attachments/assets/2dd4a5e5-ea5c-43a4-b50c-270a4b1bfc5f
 
 
 
-#### 4.3 Disturbance Response
+#### 5.3 Disturbance Response
 - **Recovery Behavior:**  
   Cases 2 and 5 demonstrated instantaneous or no measurable recovery time, indicating that the system quickly counteracted disturbances. In contrast, Cases 1, 3, and especially 4 exhibited nonzero recovery times, with Case 4 showing severe recovery delays.
 - **Control Effort Distribution:**  
@@ -259,32 +298,12 @@ https://github.com/user-attachments/assets/2dd4a5e5-ea5c-43a4-b50c-270a4b1bfc5f
 
 - **Stability and Constraint Satisfaction:**  
   - **Case 2** achieved excellent cart regulation and maintained the cart well within ±2.5 m while keeping the pole near vertical.
-  - **Case 5** showed the best overall performance in terms of stability duration and low deviations, with the added trade-off of increased control effort.
+  - **Case 5** showed the best performance in terms of stability duration and low deviations, with the added trade-off of increased control effort.
 - **Performance Trade-offs:**  
   - Increasing Q weights for specific states improves the regulation of those states, but may adversely affect other performance metrics.
   - A higher R value can reduce control effort, yet may compromise the rapidity of disturbance rejection.
 - **Overall Recommendation:**  
-  Based on our experimental results, **Case 5** appears to offer a balanced solution, with low deviations, extended stable operation, and acceptable control effort, making it a promising candidate for robust operation under earthquake disturbances.
-
-
-### Extra Credit (up to 30 points)
-- Reinforcement Learning Implementation (30 points)
-
-## Tips for Success
-1. Start with understanding the existing controller behavior
-2. Document baseline performance thoroughly
-3. Make systematic parameter adjustments
-4. Keep detailed records of all tests
-5. Focus on understanding trade-offs
-6. Use visualizations effectively
-
-## Submission Requirements
-1. Technical report including:
-   - Analysis of controller behavior
-   - Performance data and plots
-   - Discussion of findings
-2. Video demonstration of system performance
-3. Any additional analysis tools or visualizations created
+  Based on our experimental results, **Case 5** appears to offer a balanced solution, with low deviations, extended stable operation, and acceptable control effort, making it a best for robust operation under earthquake disturbances.
 
 ## License
 This work is licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).

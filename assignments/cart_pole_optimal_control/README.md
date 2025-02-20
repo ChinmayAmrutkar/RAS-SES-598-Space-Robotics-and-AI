@@ -1,13 +1,16 @@
-# Cart-Pole Optimal Control Assignment
+# Cart-Pole Optimal Control 
 
-[Watch the demo video](https://drive.google.com/file/d/1UEo88tqG-vV_pkRSoBF_-FWAlsZOLoIb/view?usp=sharing)
-![image](https://github.com/user-attachments/assets/c8591475-3676-4cdf-8b4a-6539e5a2325f)
+![image](https://github.com/user-attachments/assets/46e046e4-2a3e-49b3-bb92-a8b3b50990d0)
+
 
 ## Overview
-This assignment challenges students to tune and analyze an LQR controller for a cart-pole system subject to earthquake disturbances. The goal is to maintain the pole's stability while keeping the cart within its physical constraints under external perturbations. The earthquake force generator in this assignment introduces students to simulating and controlling systems under seismic disturbances, which connects to the Virtual Shake Robot covered later in the course. The skills developed here in handling dynamic disturbances and maintaining system stability will be useful for optimal control of space robots, such as Lunar landers or orbital debris removal robots.
+This project involves tuning and analyzing an LQR controller for a cart-pole system subject to earthquake disturbances. The goal is to maintain the pole's stability while keeping the cart within its physical constraints under external perturbations. The earthquake force generator introduces simulating and controlling systems under seismic disturbances. The ability to handle dynamic disturbances and maintain system stability is crucial for the optimal control of space-based robotic systems, including applications such as Lunar landers and orbital debris removal robots.
 
 ## System Description
-The assignment is based on the problem formalism here: https://underactuated.mit.edu/acrobot.html#cart_pole
+The project is based on the problem formalism here: https://underactuated.mit.edu/acrobot.html#cart_pole <br>
+<br>
+![image](https://github.com/user-attachments/assets/b8c3d79d-6e14-409f-91ef-8a63ab45087d)
+
 ### Physical Setup
 - Inverted pendulum mounted on a cart
 - Cart traversal range: ±2.5m (total range: 5m)
@@ -23,7 +26,7 @@ The system includes an earthquake force generator that introduces external distu
 - Random variations in amplitude and phase
 - Additional Gaussian noise
 
-## Assignment Objectives
+## Objectives
 
 ### Core Requirements
 1. Analyze and tune the provided LQR controller to:
@@ -91,7 +94,7 @@ The earthquake generator (`earthquake_force_generator.py`) provides realistic di
 ## Getting Started
 
 ### Prerequisites
-- ROS2 Humble or Jazzy
+- ROS2 Jazzy
 - Gazebo Garden
 - Python 3.8+
 - Required Python packages: numpy, scipy
@@ -99,7 +102,7 @@ The earthquake generator (`earthquake_force_generator.py`) provides realistic di
 #### Installation Commands
 ```bash
 # Set ROS_DISTRO as per your configuration
-export ROS_DISTRO=humble
+export ROS_DISTRO=jazzy
 
 # Install ROS2 packages
 sudo apt update
@@ -114,47 +117,6 @@ sudo apt install -y \
 pip3 install numpy scipy control
 ```
 
-### Repository Setup
-
-#### If you already have a fork of the course repository:
-```bash
-# Navigate to your local copy of the repository
-cd ~/RAS-SES-598-Space-Robotics-and-AI
-
-# Add the original repository as upstream (if not already done)
-git remote add upstream https://github.com/DREAMS-lab/RAS-SES-598-Space-Robotics-and-AI.git
-
-# Fetch the latest changes from upstream
-git fetch upstream
-
-# Checkout your main branch
-git checkout main
-
-# Merge upstream changes
-git merge upstream/main
-
-# Push the updates to your fork
-git push origin main
-```
-
-#### If you don't have a fork yet:
-1. Fork the course repository:
-   - Visit: https://github.com/DREAMS-lab/RAS-SES-598-Space-Robotics-and-AI
-   - Click "Fork" in the top-right corner
-   - Select your GitHub account as the destination
-
-2. Clone your fork:
-```bash
-cd ~/
-git clone https://github.com/YOUR_USERNAME/RAS-SES-598-Space-Robotics-and-AI.git
-```
-
-### Create Symlink to ROS2 Workspace
-```bash
-# Create symlink in your ROS2 workspace
-cd ~/ros2_ws/src
-ln -s ~/RAS-SES-598-Space-Robotics-and-AI/assignments/cart_pole_optimal_control .
-```
 
 ### Building and Running
 ```bash
@@ -194,54 +156,105 @@ Two types of forces are visualized:
 
 Arrow lengths are proportional to force magnitudes.
 
-## Analysis Requirements
+## Analysis
 
-### Performance Metrics
-Students should analyze:
-1. Stability Metrics:
-   - Maximum pole angle deviation
-   - RMS cart position error
-   - Peak control force used
-   - Recovery time after disturbances
+### 1. LQR Tuning Approach
 
-2. System Constraints:
-   - Cart position limit: ±2.5m
-   - Control rate: 50Hz
-   - Pole angle stability
-   - Control effort efficiency
+#### 1.1 Analysis of Q and R Matrices
 
-### Analysis Guidelines
-1. Baseline Performance:
-   - Document system behavior with default parameters
-   - Identify key performance bottlenecks
-   - Analyze disturbance effects
+- **Baseline (Case 1):**
+  - **Q Matrix:** `diag([1.0, 1.0, 10.0, 10.0])`
+  - **R Matrix:** `[[0.1]]`
+  - *Observation:* The default parameters produced significant cart deviations (reaching the ±2.5 m limit) and moderate pole deviations.
 
-2. Parameter Effects:
-   - Analyze how Q matrix weights affect different states
-   - Study R value's impact on control aggressiveness
-   - Document trade-offs between objectives
+- **Tuning Objectives:**
+  - **Improve Cart Regulation:** Increase the weight on cart position to keep the cart closer to the desired setpoint.
+  - **Enhance Pendulum Stability:** Increase the weight on the pole angle to reduce deviations.
+  - **Control Effort Trade-off:** Adjust R to balance aggressiveness against actuator saturation.
+ 
+#### 1.2 Justification for Tuning Changes
+- **Case 1:** Baseline 
+- **Case 2:** Increased the cart position weight (Q[0,0] = 50.0) to improve cart regulation.
+- **Case 3 & 4:** Increased the pole angle weight (Q[2,2] = 50.0) to force quicker correction of pendulum deviations. (Note: Case 4 yielded worse performance due to a combination of factors, highlighting trade-offs.)
+- **Case 5:** Balanced moderate weights on both cart and pole (Q = diag([20.0, 1.0, 20.0, 10.0])) combined with a lower control cost (R = 0.05) to achieve more aggressive control without excessive actuator saturation.
 
-3. Disturbance Response:
-   - Characterize system response to different disturbance frequencies
-   - Analyze recovery behavior
-   - Study control effort distribution
+### 2. Experimental Results
 
-## Evaluation Criteria
-### Core Assignment (100 points)
-1. Analysis Quality (40 points)
-   - Depth of parameter analysis
-   - Quality of performance metrics
-   - Understanding of system behavior
+We collected the following metrics for each test case over a 180-seconds simulation (or until the cart reached ±2.5 m) using data_logger.py
 
-2. Performance Results (30 points)
-   - Stability under disturbances
-   - Constraint satisfaction
-   - Control efficiency
+- **Maximum Pole Angle Deviation (rad)**
+- **RMS Cart Position Error (m)**
+- **Peak Control Force Used (N)**
+- **Max Recovery Time After Disturbances (s)**
+- **Maximum Cart Displacement (m)**
+- **RMS Pole Angle Deviation (rad)**
+- **Longest Stable Duration (s)**
+- **Total Control Effort**
+- **Average Control Effort**
 
-3. Documentation (30 points)
-   - Clear analysis presentation
-   - Quality of data and plots
-   - Thoroughness of discussion
+### 3. Comparison Table
+
+| **Test Case** | **Q Matrix**                                 | **R Matrix** | **Max Pole Angle** (rad) | **RMS Cart Error** (m) | **Peak Control Force** (N) | **Recovery Time** (s) | **Max Cart Displacement** (m) | **Overall Performance** |
+|---------------|----------------------------------------------|--------------|--------------------------|------------------------|----------------------------|-----------------------|-------------------------------|-------------------------|
+| **Case 1**    | `diag([1.0, 1.0, 10.0, 10.0])`               | 0.1          | 0.1273 ❌                | 0.6029 ❌              | 75.12 ✅                   | 2.87 ❌               | 2.50 ❌                       | ❌                      |
+| **Case 2**    | `diag([50.0, 1.0, 10.0, 10.0])`              | 0.1          | 0.0741 ✅                | 0.1089 ✅              | 71.30 ✅                   | 0.00 ✅               | 0.25 ✅                       | ✅                      |
+| **Case 3**    | `diag([1.0, 1.0, 50.0, 10.0])`               | 0.1          | 0.1281 ❌                | 0.7107 ❌              | 76.64 ✅                   | 3.04 ❌               | 2.50 ❌                       | ❌                      |
+| **Case 4**    | `diag([1.0, 1.0, 50.0, 10.0])`               | 0.1          | 0.1922 ❌                | 1.2798 ❌              | 75.61 ✅                   | 21.96 ❌              | 2.50 ❌                       | ❌                      |
+| **Case 5**    | `diag([20.0, 1.0, 20.0, 10.0])`              | 0.05         | 0.0643 ✅                | 0.1529 ✅              | 78.13 ✅                   | 0.00 ✅               | 0.59 ✅                       | ✅                      |
+
+### 4. Analysis and Discussion
+
+#### 4.1 Baseline Performance (Case 1)
+- **System Behavior:**  
+  The baseline controller (Case 1) allowed the cart to reach the physical limit (±2.5 m), resulting in high RMS cart error and a maximum cart displacement of 2.5 m. Recovery times were moderate, indicating that once disturbed, the system took about 2.87 s to recover.<br>
+  CASE_1 Video:<br>
+![case1](https://github.com/user-attachments/assets/4888de36-9f27-4cf9-96b0-5e4870efbd98)<br>
+
+- **Bottlenecks:**  
+  The low cart weight in Q contributed to poor cart regulation, resulting in significant displacement.
+
+#### 4.2 Parameter Effects
+- **Cart Position Weight (Case 2):**  
+  Increasing the weight on cart position reduced RMS cart error dramatically (0.1089 m) and kept the cart near the setpoint (maximum displacement of only 0.2516 m). This case showed no recovery time (indicating the system remained stable without significant disturbances).<br>
+CASE_2 Image:<br>
+![image](https://github.com/user-attachments/assets/d16008df-9862-4dc5-8f8a-d2ebeefce644)<br>
+
+- **Pole Angle Weight (Cases 3 & 4):**  
+  Increasing the pole angle weight improved the pendulum stability in some respects (lower RMS pole angle in Case 3) but at the cost of higher cart error and, in Case 4, very poor performance with long recovery times (21.96 s) and high RMS cart error (1.2798 m).  <br>
+  CASE_3 Image:<br>
+![image](https://github.com/user-attachments/assets/fe3ec03f-6928-49f9-a459-855a68368e50)<br>
+
+  CASE_4 Image:<br>
+ ![image](https://github.com/user-attachments/assets/757b18d8-d8fc-468e-8769-9e8f404f788b)<br>
+
+- **Control Effort (Case 5):**  
+  With a balanced Q (moderate weights on both cart and pole) and a lower R, the controller was more aggressive. This led to the lowest maximum pole angle deviation (0.0643 rad) and low RMS cart error (0.1529 m), along with the longest stable operation (105.29 s). However, the aggressive control also resulted in a higher total control effort.<br>
+  CASE_5 Video:<br>
+![case5](https://github.com/user-attachments/assets/fad37e99-0fa3-4f53-bb32-e61a4e2e1894)<br>
+
+#### 4.3 Disturbance Response
+- **Recovery Behavior:**  
+  Cases 2 and 5 demonstrated instantaneous or no measurable recovery time, indicating that the system quickly counteracted disturbances. In contrast, Cases 1, 3, and especially 4 exhibited nonzero recovery times, with Case 4 showing severe recovery delays.
+- **Control Effort Distribution:**  
+  The average control effort varied across cases, highlighting the trade-off between achieving a quick, stable response and minimizing actuator load. Lower R values (as in Case 5) encouraged aggressive control, reducing deviations but at the cost of higher force usage.
+
+## Video Results of few Test Cases:
+- **Case 1:** [Watch Video](media/case1_video.mp4)
+- **Case 2:** [Watch Video](media/case2_video.mp4)
+- **Case 5:** [Watch Video](media/case5_video.mp4)
+
+
+## Conclusions
+
+- **Stability and Constraint Satisfaction:**  
+  - **Case 2** achieved excellent cart regulation and maintained the cart well within ±2.5 m while keeping the pole near vertical.
+  - **Case 5** showed the best overall performance in terms of stability duration and low deviations, with the added trade-off of increased control effort.
+- **Performance Trade-offs:**  
+  - Increasing Q weights for specific states improves the regulation of those states, but may adversely affect other performance metrics.
+  - A higher R value can reduce control effort, yet may compromise the rapidity of disturbance rejection.
+- **Overall Recommendation:**  
+  Based on our experimental results, **Case 5** appears to offer a balanced solution, with low deviations, extended stable operation, and acceptable control effort, making it a promising candidate for robust operation under earthquake disturbances.
+
 
 ### Extra Credit (up to 30 points)
 - Reinforcement Learning Implementation (30 points)

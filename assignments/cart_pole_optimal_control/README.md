@@ -7,7 +7,9 @@
 This project involves tuning and analyzing an LQR controller for a cart-pole system subject to earthquake disturbances. The goal is to maintain the pole's stability while keeping the cart within its physical constraints under external perturbations. The earthquake force generator introduces simulating and controlling systems under seismic disturbances. The ability to handle dynamic disturbances and maintain system stability is crucial for the optimal control of space-based robotic systems, including applications such as Lunar landers and orbital debris removal robots.
 
 ## System Description
-The project is based on the problem formalism here: https://underactuated.mit.edu/acrobot.html#cart_pole
+The project is based on the problem formalism here: https://underactuated.mit.edu/acrobot.html#cart_pole <br>
+<br>
+![image](https://github.com/user-attachments/assets/b8c3d79d-6e14-409f-91ef-8a63ab45087d)
 
 ### Physical Setup
 - Inverted pendulum mounted on a cart
@@ -252,7 +254,6 @@ CASE_2 Image:<br>
   - A higher R value can reduce control effort, yet may compromise the rapidity of disturbance rejection.
 - **Overall Recommendation:**  
   Based on our experimental results, **Case 5** appears to offer a balanced solution, with low deviations, extended stable operation, and acceptable control effort, making it a promising candidate for robust operation under earthquake disturbances.
-
 
 
 ### Extra Credit (up to 30 points)

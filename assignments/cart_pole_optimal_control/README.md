@@ -207,9 +207,12 @@ We collected the following metrics for each test case over a 180-seconds simulat
 #### 4.1 Baseline Performance (Case 1)
 - **System Behavior:**  
   The baseline controller (Case 1) allowed the cart to reach the physical limit (±2.5 m), resulting in high RMS cart error and a maximum cart displacement of 2.5 m. Recovery times were moderate, indicating that once disturbed, the system took about 2.87 s to recover.<br>
-  CASE_1 Video:<br>
 <br>
-![case1](https://github.com/user-attachments/assets/4888de36-9f27-4cf9-96b0-5e4870efbd98)<br>
+CASE_1 Video:<br>
+<br>
+
+https://github.com/user-attachments/assets/4ffc95ac-5e5e-48de-8d5f-46d6dfa11622
+
 
 - **Bottlenecks:**  
   The low cart weight in Q contributed to poor cart regulation, resulting in significant displacement.
@@ -217,36 +220,39 @@ We collected the following metrics for each test case over a 180-seconds simulat
 #### 4.2 Parameter Effects
 - **Cart Position Weight (Case 2):**  
   Increasing the weight on cart position reduced RMS cart error dramatically (0.1089 m) and kept the cart near the setpoint (maximum displacement of only 0.2516 m). This case showed no recovery time (indicating the system remained stable without significant disturbances).<br>
+
 CASE_2 Image:<br>
-<br>
-![image](https://github.com/user-attachments/assets/d16008df-9862-4dc5-8f8a-d2ebeefce644)<br>
+
+![image](https://github.com/user-attachments/assets/d16008df-9862-4dc5-8f8a-d2ebeefce644)
 
 - **Pole Angle Weight (Cases 3 & 4):**  
-  Increasing the pole angle weight improved the pendulum stability in some respects (lower RMS pole angle in Case 3) but at the cost of higher cart error and, in Case 4, very poor performance with long recovery times (21.96 s) and high RMS cart error (1.2798 m).  <br>
-  CASE_3 Image:<br>
-<br>
-![image](https://github.com/user-attachments/assets/fe3ec03f-6928-49f9-a459-855a68368e50)<br>
+  Increasing the pole angle weight improved the pendulum stability in some respects (lower RMS pole angle in Case 3) but at the cost of higher cart error and, in Case 4, very poor performance with long recovery times (21.96 s) and high RMS cart error (1.2798 m).<br>
 
-  CASE_4 Image:<br>
-<br>
- ![image](https://github.com/user-attachments/assets/757b18d8-d8fc-468e-8769-9e8f404f788b)<br>
+CASE_3 Image:<br>
+
+![image](https://github.com/user-attachments/assets/fe3ec03f-6928-49f9-a459-855a68368e50)
+
+CASE_4 Image:<br>
+
+ ![image](https://github.com/user-attachments/assets/757b18d8-d8fc-468e-8769-9e8f404f788b)
 
 - **Control Effort (Case 5):**  
-  With a balanced Q (moderate weights on both cart and pole) and a lower R, the controller was more aggressive. This led to the lowest maximum pole angle deviation (0.0643 rad) and low RMS cart error (0.1529 m), along with the longest stable operation (105.29 s). However, the aggressive control also resulted in a higher total control effort.<br>
-  CASE_5 Video:<br>
-<br>
-![case5](https://github.com/user-attachments/assets/fad37e99-0fa3-4f53-bb32-e61a4e2e1894)<br>
+  With a balanced Q (moderate weights on both cart and pole) and a lower R, the controller was more aggressive. This led to the lowest maximum pole angle deviation (0.0643 rad) and low RMS cart error (0.1529 m), along with the longest stable operation (105.29 s). However, the aggressive control also resulted in a higher total control effort.
+
+  <br>
+CASE_5 Video:
+  <br>
+
+
+https://github.com/user-attachments/assets/2dd4a5e5-ea5c-43a4-b50c-270a4b1bfc5f
+
+
 
 #### 4.3 Disturbance Response
 - **Recovery Behavior:**  
   Cases 2 and 5 demonstrated instantaneous or no measurable recovery time, indicating that the system quickly counteracted disturbances. In contrast, Cases 1, 3, and especially 4 exhibited nonzero recovery times, with Case 4 showing severe recovery delays.
 - **Control Effort Distribution:**  
   The average control effort varied across cases, highlighting the trade-off between achieving a quick, stable response and minimizing actuator load. Lower R values (as in Case 5) encouraged aggressive control, reducing deviations but at the cost of higher force usage.
-
-## Video Results of few Test Cases:
-- **Case 1:** [Watch Video](case1_video.mp4)
-- **Case 2:** [Watch Video](case2_video.mp4)
-- **Case 5:** [Watch Video](case5_video.mp4)
 
 
 ## Conclusions

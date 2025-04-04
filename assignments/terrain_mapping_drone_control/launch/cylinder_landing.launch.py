@@ -2,21 +2,22 @@
 
 from launch import LaunchDescription
 from launch_ros.actions import Node
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, TimerAction, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 import os
 
 def generate_launch_description():
-    """Generate launch description for cylinder landing mission."""
+    """Generate launch description for cylinder landing mission with RTAB-Map."""
     
-    # Get the package share directory
+    # Get the package share directory (using correct package name)
     pkg_share = get_package_share_directory('terrain_mapping_drone_control')
         
     # Set Gazebo model and resource paths
     gz_model_path = os.path.join(pkg_share, 'models')
 
-    # # Set initial drone pose
+    # Set initial drone pose
     os.environ['PX4_GZ_MODEL_POSE'] = "0,0,0.1,0,0,0"
     
     # Add launch argument for PX4-Autopilot path
@@ -81,7 +82,6 @@ def generate_launch_description():
             
             # Front Depth Camera
             '/depth_camera@sensor_msgs/msg/Image[gz.msgs.Image',
-            # '/depth_camera/depth_image@sensor_msgs/msg/Image[gz.msgs.Image',
             '/depth_camera/points@sensor_msgs/msg/PointCloud2[gz.msgs.PointCloudPacked',
             '/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
             
@@ -89,9 +89,8 @@ def generate_launch_description():
             '/mono_camera@sensor_msgs/msg/Image[gz.msgs.Image',
             '/mono_camera/camera_info@sensor_msgs/msg/CameraInfo[gz.msgs.CameraInfo',
             
-            # Clock and Odometry
+            # Clock
             '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-            # '/model/x500_depth_mono_0/odometry_with_covariance@nav_msgs/msg/Odometry[gz.msgs.OdometryWithCovariance',
         ],
         remappings=[
             # Front RGB Camera remappings
@@ -100,17 +99,42 @@ def generate_launch_description():
             
             # Front Depth Camera remappings
             ('/depth_camera', '/drone/front_depth'),
-            # ('/depth_camera/depth_image', '/drone/front_depth/depth'),
             ('/depth_camera/points', '/drone/front_depth/points'),
             ('/camera_info', '/drone/front_depth/camera_info'),
             
             # Down Mono Camera remappings
             ('/mono_camera', '/drone/down_mono'),
             ('/mono_camera/camera_info', '/drone/down_mono/camera_info'),
-            
-            # Odometry remapping
-            # ('/model/x500_depth_mono_0/odometry_with_covariance', '/fmu/out/vehicle_odometry'),
         ],
+        output='screen'
+    )
+
+    # Include RTAB-Map launch file
+    rtabmap_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_share, 'launch', 'rtabmap.launch.py')
+        )
+    )
+
+    # Launch drone control nodes
+    aruco_tracker = Node(
+        package='terrain_mapping_drone_control',  # Corrected package name
+        executable='aruco_tracker.py',
+        name='aruco_tracker',
+        output='screen'
+    )
+
+    drone_controller = Node(
+        package='terrain_mapping_drone_control',  # Corrected package name
+        executable='drone_controller.py',
+        name='drone_controller',
+        output='screen'
+    )
+
+    mission_planner = Node(
+        package='terrain_mapping_drone_control',  # Corrected package name
+        executable='mission_planner.py',
+        name='mission_planner',
         output='screen'
     )
 
@@ -124,6 +148,7 @@ def generate_launch_description():
             default_value=os.environ.get('HOME', '/home/' + os.environ.get('USER', 'user')) + '/PX4-Autopilot',
             description='Path to PX4-Autopilot directory'),
         px4_sitl,
+        # Launch gazebo objects with timers to ensure proper initialization
         TimerAction(
             period=2.0,
             actions=[spawn_cylinder_front]
@@ -135,5 +160,19 @@ def generate_launch_description():
         TimerAction(
             period=3.0,
             actions=[bridge]
+        ),
+        # Launch RTAB-Map after simulator components are initialized
+        TimerAction(
+            period=5.0,
+            actions=[rtabmap_launch]
+        ),
+        # Launch drone control nodes after all other components
+        TimerAction(
+            period=8.0,
+            actions=[
+                aruco_tracker,
+                drone_controller,
+                mission_planner
+            ]
         )
-    ]) 
+    ])

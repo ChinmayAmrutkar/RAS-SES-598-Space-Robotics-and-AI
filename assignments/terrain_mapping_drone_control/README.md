@@ -176,11 +176,4 @@ ros2 run terrain_mapping_drone_control aruco_lawnmower_landing.py
 This project is licensed under the **MIT License**.  
 Feel free to use and modify with attribution.
 
----
-
-## 👨‍💻 Author
-
-**Chinmay Yo**  
-Graduate Researcher | Robotics & AI | Arizona State University  
-
 

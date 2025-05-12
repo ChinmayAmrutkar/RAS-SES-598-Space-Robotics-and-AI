@@ -35,7 +35,7 @@ terrain_mapping_drone_control/
 │   └── cylinder_landing.launch.py  # Launch file for mission
 ├── terrain_mapping_drone_control/
 │   └── aruco_lawnmower_landing.py  # Main ROS 2 mission node
-├── worlds/ (optional)
+├── worlds/ 
 │   └── custom cylinder + marker Gazebo world
 ```
 
@@ -70,7 +70,7 @@ WAITING_FOR_ARM
 
 - Ubuntu 22.04
 - ROS 2 Humble
-- PX4-Autopilot (main or `9ac03f03eb`)
+- PX4-Autopilot (main)
 - OpenCV ≥ 4.11.0
 - Python 3.10
 - `cv_bridge`, `px4_msgs`, `sensor_msgs`, `trajectory_msgs`

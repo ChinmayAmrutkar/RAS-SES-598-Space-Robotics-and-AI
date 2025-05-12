@@ -1,27 +1,47 @@
-# 🛰️Rocky Times Challenge - Search, Map, & Analyze
+# 🛰️ Rocky Times Challenge - Search, Map, & Analyze
 
-This project implements a fully autonomous drone system that performs aerial surveying using a **lawnmower pattern**, detects **ArUco markers** in real-time via an onboard camera, estimates their global position, and **performs a stable and precise landing** on the detected marker. Built using **ROS 2 Humble**, **PX4 SITL**, and **OpenCV**, the system is modular, robust, and simulation-ready for feature extension.
-This ROS2 package implements an autonomous drone system for geological feature detection, mapping, and analysis using an RGBD camera and PX4 SITL simulation.
-
----
-
-## 🧠 Key Features
-
-- 🚁 **Autonomous takeoff, offboard control, and arming**
-- 🧭 **Lawnmower (boustrophedon) path generation** for wide-area search
-- 🎯 **Real-time ArUco detection** using OpenCV 4.11+
-- 🌍 **Global position estimation** of the marker using camera pose + odometry
-- 🌀 **Smooth approach + hovering over marker** for stable landing
-- 🛬 **Controlled vertical descent** and soft landing on the detected marker
-- 🧼 **ROS 2 logging** with terminal-level status and debug output
+This project implements a fully autonomous drone system to search, detect, and analyze geological formations using **PX4 SITL**, **ROS 2 Humble**, and an **RGBD camera**. The system performs a **lawnmower survey**, detects **ArUco markers** in real time, estimates their global pose, and executes a **controlled precision landing** on the tallest detected cylinder (10m).
 
 ---
 
-## 🎥 Demo
+## 🚀 Key Capabilities
 
-<p align="center">
-  <img src="https://github.com/YOUR_USERNAME/YOUR_REPO/assets/demo-gif.gif" width="600"/>
-</p>
+- ✅ **Autonomous takeoff, offboard control, arming**
+- 📐 **Lawnmower (boustrophedon) survey pattern** for area coverage
+- 🎯 **Real-time ArUco marker detection** using OpenCV 4.11+
+- 🌍 **Global pose estimation** via solvePnP + PX4 odometry fusion
+- 🛬 **Stabilized hover and vertical descent** for precise landings
+- 📊 **ROS 2-based logging, diagnostics, and telemetry**
+- 📦 **Modular mission node** supporting extensibility for SLAM/RTAB-Map
+
+---
+
+## 🎥 Demo Highlights
+
+| Trial 1 | Trial 2 | Trial 3 |
+|--------|---------|---------|
+| ![TRIALGIF2](https://github.com/user-attachments/assets/1c9cb637-9e3a-43b8-bf91-6a311dd4bee0) | ![TRIALGIF3](https://github.com/user-attachments/assets/9e7fe304-f3e8-4785-a6c3-df1c969eea9c) | ![trialgif4](https://github.com/user-attachments/assets/01897582-220c-4057-8f86-02725953c99d) |
+
+---
+
+## 🧭 Mission Workflow
+
+1. Drone autonomously takes off to a fixed height (e.g., 12m).
+2. Executes a lawnmower coverage over the search area.
+3. Continuously scans for ArUco markers using a downward-facing camera.
+4. Upon detection:
+   - Aborts survey
+   - Estimates marker’s world-frame pose using `solvePnP` + odometry
+   - Approaches marker and stabilizes hover
+   - Descends slowly and lands on the marker
+
+---
+
+## 🧠 State Machine
+
+```text
+TAKEOFF → SURVEY → GOTO_ARUCO → HOVER → DESCEND → LAND
+```
 
 ---
 
@@ -29,53 +49,44 @@ This ROS2 package implements an autonomous drone system for geological feature d
 
 ```
 terrain_mapping_drone_control/
-├── scripts/
-│   └── deploy_px4_model.sh     # PX4 model install script
 ├── launch/
-│   └── cylinder_landing.launch.py  # Launch file for mission
+│   └── cylinder_landing.launch.py
+├── scripts/
+│   └── deploy_px4_model.sh
 ├── terrain_mapping_drone_control/
-│   └── aruco_lawnmower_landing.py  # Main ROS 2 mission node
-├── worlds/ 
-│   └── custom cylinder + marker Gazebo world
+│   └── aruco_lawnmower_landing.py
+│   └── aruco_tracker.py
+│   └── aruco_landing_controller.py
 ```
 
 ---
 
-## ⚙️ System Overview
+## 🧪 Results Summary
 
-### 🔁 State Machine Flow
+| Trial   | Survey Complete | ArUco Detected | Hover Stable | Controlled Descent | Landed on Marker |
+|---------|------------------|----------------|---------------|---------------------|-------------------|
+| Trial 1 | ✅               | ✅              | ✅             | ✅                   | ❌ Slight Offset   |
+| Trial 2 | ✅               | ✅              | ✅             | ✅                   | ❌ Slight Offset   |
+| Trial 3 | ✅               | ✅              | ✅             | ✅                   | ❌ Slight Offset   |
 
-```text
-WAITING_FOR_ARM
-   └── Takeoff (fixed height)
-         └── Lawn Mower Survey
-               └── Detect ArUco Marker
-                     └── Hover & Stabilize
-                           └── Descend & Land
-```
-
-### 🔎 ArUco Marker Detection
-
-- Detected via downward-facing camera (`/drone/down_mono`)
-- Uses `cv2.aruco` with `DICT_4X4_50` markers
-- Position is estimated with `solvePnP()` using known marker size
-- Once detected, the drone locks onto the estimated global pose
-- Image subscription is **unregistered** after detection to reduce noise
+📌 **Observation:** All trials executed the complete mission pipeline successfully. Minor landing offset was observed — likely due to slight camera-to-body transform error or noisy solvePnP `tvec`.
 
 ---
 
-## 🚀 Quick Start
-
-### Prerequisites
+## 🔧 System Requirements
 
 - Ubuntu 22.04
 - ROS 2 Humble
-- PX4-Autopilot (main)
+- PX4-Autopilot (main branch)
 - OpenCV ≥ 4.11.0
-- Python 3.10
-- `cv_bridge`, `px4_msgs`, `sensor_msgs`, `trajectory_msgs`
+- Python ≥ 3.8
+- RTAB-Map (for optional 3D mapping)
 
-### Clone and Symlink the Package
+---
+
+## 🛠️ Installation & Setup
+
+### 1. Clone & Link the Package
 
 ```bash
 cd ~/ros2_ws/src
@@ -83,7 +94,7 @@ git clone https://github.com/YOUR_USERNAME/terrain_mapping_drone_control.git
 ln -s ~/terrain_mapping_drone_control/assignments/terrain_mapping_drone_control .
 ```
 
-### Build and Source
+### 2. Build the Workspace
 
 ```bash
 cd ~/ros2_ws
@@ -91,7 +102,7 @@ colcon build --packages-select terrain_mapping_drone_control --symlink-install
 source install/setup.bash
 ```
 
-### Deploy PX4 Model (Optional)
+### 3. Deploy PX4 Model Files
 
 ```bash
 cd ~/ros2_ws/src/terrain_mapping_drone_control
@@ -99,13 +110,14 @@ chmod +x scripts/deploy_px4_model.sh
 ./scripts/deploy_px4_model.sh -p ~/PX4-Autopilot
 ```
 
-### Launch Simulation (PX4 + Gazebo)
+### 4. Run PX4 SITL
 
 ```bash
+cd ~/PX4-Autopilot
 make px4_sitl_default gz_x500_depth
 ```
 
-### Run the ROS 2 Mission Node
+### 5. Launch ROS 2 Mission Node
 
 ```bash
 ros2 run terrain_mapping_drone_control aruco_lawnmower_landing.py
@@ -113,67 +125,57 @@ ros2 run terrain_mapping_drone_control aruco_lawnmower_landing.py
 
 ---
 
-## 🧪 Example Terminal Output
+## 🧪 Terminal Output Example
 
 ```text
---- Mission node initialized
---- Camera calibration received
---- Sent OFFBOARD command
---- Sent ARM command
---- Takeoff complete. Starting survey
---- ArUco detected. Setting landing target to: (3.82, -2.17)
---- Stopped ArUco detection. Using fixed landing coordinates.
---- Position reached. Starting landing...
---- Landed
+--- Takeoff complete
+--- Executing survey pattern...
+--- Marker detected at image center
+--- Estimating marker pose...
+--- Navigating to (3.6, -2.4)
+--- Hovering above marker
+--- Descending...
+--- Landing complete
 ```
 
 ---
 
-## 🛠️ Tuning Parameters
+## ⚙️ Parameters
 
-| Parameter          | Description                            | Default |
-|-------------------|----------------------------------------|---------|
-| `TAKEOFF_HEIGHT`   | Height to reach after arming           | 11.70m  |
-| `LAND_HEIGHT`      | Final height before land command       | 0.20m   |
-| `MARKER_SIZE`      | Size of the ArUco marker (in meters)   | 0.80m   |
-| `grid_step`        | Lawnmower line spacing                 | 4.0m    |
-| `aruco_stable_counter` | Stability check before descent     | ≥10 frames |
-
----
-
-## 📡 ROS Topics Used
-
-| Topic                            | Type                      | Direction  |
-|----------------------------------|---------------------------|------------|
-| `/fmu/in/trajectory_setpoint`   | `px4_msgs/TrajectorySetpoint` | 📨 Publish |
-| `/fmu/in/offboard_control_mode` | `px4_msgs/OffboardControlMode` | 📨 Publish |
-| `/fmu/in/vehicle_command`       | `px4_msgs/VehicleCommand` | 📨 Publish |
-| `/fmu/out/vehicle_odometry`     | `px4_msgs/VehicleOdometry` | 📤 Subscribe |
-| `/drone/down_mono/image_raw`    | `sensor_msgs/Image`       | 📤 Subscribe |
-| `/drone/down_mono/camera_info`  | `sensor_msgs/CameraInfo`  | 📤 Subscribe |
+| Parameter            | Description                                | Default |
+|---------------------|--------------------------------------------|---------|
+| `TAKEOFF_HEIGHT`     | Altitude to reach after arming              | 12.0 m  |
+| `MARKER_SIZE`        | Physical marker size                        | 0.8 m   |
+| `LAND_HEIGHT`        | Final descent threshold                    | 0.2 m   |
+| `grid_step`          | Lawn mowing line spacing                    | 4.0 m   |
+| `aruco_stable_counter` | Required frames before locking target   | 10      |
 
 ---
 
-## 💡 Notes
+## 🛰 ROS 2 Topics Used
 
-- Coordinates of ArUco markers are calculated in camera frame → transformed to global (world) frame using odometry
-- Hover logic ensures drone does not descend until marker position is stabilized
-- System avoids immediate reaction to noisy detections by requiring multiple stable observations
-
----
-
-## 📌 Future Improvements (Working on it)
-
-- Use RTAB-Map for full scene 3D reconstruction and mesh export
-- Replace position control with PID-tuned velocity control for smoother approach
-- Add multiple marker detection support and select tallest rock
-- Enable real-time energy + time tracking per run
+| Topic                             | Type                         | Role      |
+|----------------------------------|------------------------------|-----------|
+| `/fmu/in/trajectory_setpoint`    | `px4_msgs/TrajectorySetpoint` | ➡️ Command |
+| `/fmu/in/offboard_control_mode`  | `px4_msgs/OffboardControlMode`| ➡️ Mode    |
+| `/fmu/in/vehicle_command`        | `px4_msgs/VehicleCommand`     | ➡️ Arm/Mode |
+| `/fmu/out/vehicle_odometry`      | `px4_msgs/VehicleOdometry`    | ⬅️ Feedback |
+| `/drone/down_mono/image_raw`     | `sensor_msgs/Image`           | ⬅️ Camera  |
+| `/drone/down_mono/camera_info`   | `sensor_msgs/CameraInfo`      | ⬅️ Camera Info |
 
 ---
 
-## 📝 License
+## 🔍 Future Enhancements
 
-This project is licensed under the **MIT License**.  
-Feel free to use and modify with attribution.
+- 📐 Use RTAB-Map for 3D mapping and mesh export
+- 🧭 Add frame alignment calibration to improve final landing precision
+- 🧮 Integrate time + energy performance metrics
+- 📍 Support multi-marker detection + landing on tallest
 
+---
+
+## 📜 License
+
+This project is released under the **MIT License**.  
+You are free to use, share, and modify with proper attribution.
 

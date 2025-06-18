@@ -31,7 +31,7 @@ This project implements a fully autonomous drone system to search, detect, and a
 3. Continuously scans for ArUco markers using a downward-facing camera.
 4. Upon detection:
    - Aborts survey
-   - Estimates marker’s world-frame pose using `solvePnP` + odometry
+   - Estimates aroco marker’s world-frame pose
    - Approaches marker and stabilizes hover
    - Descends slowly and lands on the marker
 
